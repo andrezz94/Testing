@@ -1,2 +1,0 @@
-# SoftwareEngineeringProject
-school project
