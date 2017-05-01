@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="334.0" prefWidth="273.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="flowerunit.FXMLDocumentController">
+   <children>
+      <TextField fx:id="Host" layoutX="110.0" layoutY="14.0" promptText="IP-Address" />
+      <TextField fx:id="Port" layoutX="110.0" layoutY="47.0" promptText="Port" />
+      <TextArea fx:id="textArea" layoutX="11.0" layoutY="89.0" prefHeight="231.0" prefWidth="249.0" />
+      <Button layoutX="18.0" layoutY="14.0" mnemonicParsing="false" onAction="#handleButtonStart" text="Start Server" />
+      <Button layoutX="18.0" layoutY="47.0" mnemonicParsing="false" onAction="#handleButtonStop" text="Stop Server" />
+   </children>
+</AnchorPane>
