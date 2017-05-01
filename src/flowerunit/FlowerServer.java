@@ -11,64 +11,77 @@ import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.scene.control.TextField;
 
 /**
  *
  * @author Oscar Odelstav, Andre Freberg, Chrstoffer Emilsson
  */
-public class FlowerServer {
+public class FlowerServer{
 
     private String host;
     private int port;
     private boolean running = false;
     private SQL sqlCon = new SQL();
+    protected TextField textField;
+    private ServerSocket serverSocket;
+    private Socket socket;
+    private BufferedReader br;
 
     public FlowerServer(String host, int port) {
         this.host = host;
         this.port = port;
+        textField = new TextField();
+        textField.setText("init");
     }
 
     private void runServer() {
 
-        System.out.println("Server starting...");
-        ServerSocket serverSocket;
-        String request = null;
-        float temp, humidity;
-        int iD;
+        (new Thread() {
 
-        try {
-            while (running) {
-                serverSocket = new ServerSocket(port);
-                Socket socket = serverSocket.accept();
-                System.out.println("Accepting incoming connections on " + host + ": " + port);
-                BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            @Override
+            public void run() {
 
-                while (true) {
+                System.out.println("Server starting...");
+                
+                float temp, humidity;
+                int iD;
 
-                    request = br.readLine();
+                try {
+                    serverSocket = new ServerSocket(port);
+                    socket = serverSocket.accept();
+                    System.out.println("Accepting incoming connections on " + host + ": " + port);
+                    br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-                    switch (request) {
-                        case "addValue":
-                            iD = br.read();
-                            temp = Integer.parseInt(br.readLine());
-                            humidity = Integer.parseInt(br.readLine());
-                            addValueToDB(temp, humidity, iD);
-                            break;
-                        case "getValue":
-                            sendLastValToUser();
-                            break;
-                        case "getHistory":
-                            sendHistoryToUser();
-                            break;
+                    while (running) {
+
+                        String request = br.readLine();
+
+                        switch (request) {
+                            case "addValue":
+                                iD = br.read();
+                                temp = Integer.parseInt(br.readLine());
+                                humidity = Integer.parseInt(br.readLine());
+                                addValueToDB(temp, humidity, iD);
+                                break;
+                            case "getValue":
+                                sendLastValToUser();
+                                break;
+                            case "getHistory":
+                                sendHistoryToUser();
+                                break;
+                        }
+                        
                     }
+                    
 
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
+        }).start();
     }
 
     private void addValueToDB(float temp, float humidity, int iD) {
@@ -99,15 +112,30 @@ public class FlowerServer {
 
         if (running) {
             System.out.println("Server is already running, stop server before starting");
+            textField.setText("\nServer is already running, stop server before starting");
         } else {
+            textField.setText("\nServer is starting");
             running = true;
             runServer();
         }
     }
 
     public void stopServer() {
+        textField.setText("\nServer is stopping");
         running = false;
+        
+        System.out.println("Stopping server");
+        try {
+            serverSocket.close();
+            
+        } catch (IOException ex) {
+            Logger.getLogger(FlowerServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
         Thread.currentThread().interrupt();
+        
     }
+
+    
 
 }
