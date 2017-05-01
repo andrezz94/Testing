@@ -7,6 +7,8 @@ package flowerunit;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -22,15 +24,17 @@ public class FXMLDocumentController implements Initializable {
     
     private FlowerServer server;
     
+    
+    
     @FXML
     private TextField Host, Port;
     
     @FXML
-    private TextArea textArea;
+    protected TextArea textArea;
     
     @FXML
     private void handleButtonStart(ActionEvent event) {
-        server.startServer(Host.getText(), Integer.parseInt(Port.getText()));
+            server.startServer("127.0.0.1", 8000);
     }
     
     @FXML
@@ -41,6 +45,12 @@ public class FXMLDocumentController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         server = new FlowerServer("127.0.0.1", 8000);
-    }    
-    
+        
+        server.textField.textProperty().addListener(new ChangeListener<String>(){
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                textArea.appendText(newValue+"\n");
+            }
+        } );
+    }
 }
