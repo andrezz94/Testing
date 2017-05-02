@@ -24,8 +24,6 @@ public class FXMLDocumentController implements Initializable {
     
     private FlowerServer server;
     
-    
-    
     @FXML
     private TextField Host, Port;
     
