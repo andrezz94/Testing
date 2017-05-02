@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package flowerunit;
 
 import java.io.BufferedReader;
@@ -44,6 +39,7 @@ public class FlowerServer{
         addUnit();
     }
 
+    // Server tråd med socket anslutningar och I/O stream
     private void runServer() {
 
         (new Thread() {
@@ -55,6 +51,7 @@ public class FlowerServer{
                 
                 int temp, humidity;
                 int iD;
+                String request;
 
                 try {
                     serverSocket = new ServerSocket(port);
@@ -65,17 +62,23 @@ public class FlowerServer{
 
                     while (running) {
 
-                        String request = br.readLine();
+                        request = br.readLine();
 
                         switch (request) {
                             case "addValue":
                                 iD = br.read();
                                 temp = Integer.parseInt(br.readLine());
                                 humidity = Integer.parseInt(br.readLine());
+                                
+                                // temporär check för att kontrollera om enhet registrerad
+                                if((nodeUnits.size())>=iD){
                                 tempUnit = nodeUnits.get(iD);
                                 tempUnit.setHumidity(humidity);
                                 tempUnit.setTemp(temp);
                                 addValueToDB(temp, humidity, iD);
+                                }else{
+                                    System.out.println("Unit not Registered");
+                                }
                                 break;
                             case "getValue":
                                 sendLastValToUser();
@@ -92,16 +95,31 @@ public class FlowerServer{
         }).start();
     }
 
-    private void addValueToDB(float temp, float humidity, int iD) {
+    // Lägga till värden i databasen. db-anslutning ej färdigställd i SQL-klassen
+    private void addValueToDB(int temp, int humidity, int iD) {
         System.out.println("received value sent to DB");
-        Date date = new Date(System.currentTimeMillis());
-        sqlCon.addValue(date, temp, humidity, iD);
+        sqlCon.addValue(new Date(System.currentTimeMillis()), temp, humidity, iD);
     }
 
+    /* skicka senaste värdena till användare, endast exempelkod
+       inparameter ska kompletteras med lämplig stream för att skicka variabler till 
+       användargui när client protokoll definierats
+       lokala variabler används till detta då användare kan vara konstant uppkopplad
+       och servern ej ska behöva belasta systemet/databasen för att skicka endast senaste värdet
+    
+       get-metoderna ska loopas då samtliga enheters värden ska skickas till användare. 
+       en bra metod för detta ska arbetas fram, hur gör man då servern har flera användare?
+       hashmap som anger vilka enheter som tillhör respektive användare?
+    */ 
     private void sendLastValToUser() {
+        int temp, humidity, soilMoisture;
+        NodeUnit tempUnit = nodeUnits.get(0);
+        temp = tempUnit.getTemp();
+        humidity = tempUnit.getHumidity();
         System.out.println("most recent value is sent to user");
     }
 
+    // Här ska databasvärden som returneras dirigeras i lämplig stream till användare
     private void sendHistoryToUser() {
         System.out.println("history of values is sent from DB to user");
     }
@@ -114,6 +132,7 @@ public class FlowerServer{
         this.port = port;
     }
 
+    // åtkomst till att starta server med servercheck
     protected void startServer(String host, int port) {
         this.host = host;
         this.port = port;
@@ -128,6 +147,7 @@ public class FlowerServer{
         }
     }
 
+    // stoppa servern
     protected void stopServer() {
         textField.setText("\nServer is stopping");
         running = false;
