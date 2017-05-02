@@ -4,6 +4,8 @@ package flowerunit;
  *
 * @author Oscar Odelstav, Andre Freberg, Chrstoffer Emilsson
  */
+
+// enhets klass
 public class NodeUnit {
     
     // variablerna är Integers för tillfället, bör senare ändras till flyttal
@@ -20,7 +22,7 @@ public class NodeUnit {
         
     }
     
-    public float getTemp() {
+    public int getTemp() {
         return temp;
     }
     
@@ -28,7 +30,7 @@ public class NodeUnit {
         this.temp = temp;
     }
     
-    public float getHumidity() {
+    public int getHumidity() {
         return humidity;
     }
     
@@ -36,7 +38,7 @@ public class NodeUnit {
         this.humidity = humidity;
     }
     
-    public float getSoilMoisture() {
+    public int getSoilMoisture() {
         return soilMoisture;
     }
     
