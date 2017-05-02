@@ -36,8 +36,6 @@ public class SQL {
             ex.printStackTrace();
             Logger.getLogger(SQL.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-        
     }
     
 }
