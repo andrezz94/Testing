@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.sql.Date;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -15,7 +14,7 @@ import javafx.scene.control.TextField;
  *
  * @author Oscar Odelstav, Andre Freberg, Chrstoffer Emilsson
  */
-public class FlowerServer{
+public class FlowerServer {
 
     private String host;
     private int port;
@@ -27,6 +26,7 @@ public class FlowerServer{
     private BufferedReader br;
     private ArrayList<NodeUnit> nodeUnits;
     private static int iD = 0;
+    float test;
 
     public FlowerServer(String host, int port) {
         running = false;
@@ -35,7 +35,8 @@ public class FlowerServer{
         textField = new TextField();
         textField.setText("init");
         nodeUnits = new ArrayList<>();
-        sqlCon  = new SQL();
+        sqlCon = new SQL();
+        addUnit();
         addUnit();
     }
 
@@ -45,60 +46,76 @@ public class FlowerServer{
         (new Thread() {
 
             @Override
-            public void run() {
+            public void run() throws NullPointerException {
 
                 System.out.println("Server starting...");
-                
-                int temp, humidity;
-                int iD;
-                String request;
+                while (running) {
+                    
+                    
 
-                try {
-                    serverSocket = new ServerSocket(port);
-                    socket = serverSocket.accept();
-                    System.out.println("Accepting incoming connections on " + host + ": " + port);
-                    br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                    NodeUnit tempUnit = new NodeUnit();
+                    float temp, humidity;
+                    int iD;
+                    String request;
 
-                    while (running) {
-
-                        request = br.readLine();
-
-                        switch (request) {
-                            case "addValue":
-                                iD = br.read();
-                                temp = Integer.parseInt(br.readLine());
-                                humidity = Integer.parseInt(br.readLine());
-                                
-                                // temporär check för att kontrollera om enhet registrerad
-                                if((nodeUnits.size())>=iD){
-                                tempUnit = nodeUnits.get(iD);
-                                tempUnit.setHumidity(humidity);
-                                tempUnit.setTemp(temp);
-                                addValueToDB(temp, humidity, iD);
-                                }else{
-                                    System.out.println("Unit not Registered");
-                                }
-                                break;
-                            case "getValue":
-                                sendLastValToUser();
-                                break;
-                            case "getHistory":
-                                sendHistoryToUser();
-                                break;
-                        }   
+                    try {
+                        while(!running){
+                        Thread.sleep(1000);
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
+                        serverSocket = new ServerSocket(port);
+                        while (running) {
+                            textField.setText("Accepting incoming connections on " + host + ": " + port);
+                            System.out.println("Accepting incoming connections on " + host + ": " + port);
+                            socket = serverSocket.accept();
+                            
+                            br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+                            request = br.readLine();
+
+                            if (request != null) {
+                                switch (request) {
+                                    case "addValue":
+                                        iD = br.read();
+                                        textField.setText("User " + iD + " connected");
+                                        temp = Float.valueOf(br.readLine());
+                                        System.out.println(temp);
+                                        humidity = Float.valueOf(br.readLine());
+
+                                        //NodeUnit tempUnit = nodeUnits.get(iD);
+                                        //tempUnit.setHumidity(humidity);
+                                        //tempUnit.setTemp(temp);
+                                        addValueToDB(temp, humidity, iD);
+                                        socket.close();
+                                        textField.setText("User " + iD + " disconnected");
+                                        break;
+                                    case "getValue":
+                                        sendLastValToUser();
+                                        break;
+                                    case "getHistory":
+                                        sendHistoryToUser();
+                                        break;
+                                    default:
+                                        System.out.println("Invalid request");
+                                        break;
+                                }
+                            }
+
+                        }
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(FlowerServer.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
             }
         }).start();
     }
 
     // Lägga till värden i databasen. db-anslutning ej färdigställd i SQL-klassen
-    private void addValueToDB(int temp, int humidity, int iD) {
+    private void addValueToDB(float temp, float humidity, int iD) {
         System.out.println("received value sent to DB");
-        sqlCon.addValue(new Date(System.currentTimeMillis()), temp, humidity, iD);
+        sqlCon.addValue(temp, humidity, iD);
+        textField.setText("Values received and stored i DB");
     }
 
     /* skicka senaste värdena till användare, endast exempelkod
@@ -110,9 +127,9 @@ public class FlowerServer{
        get-metoderna ska loopas då samtliga enheters värden ska skickas till användare. 
        en bra metod för detta ska arbetas fram, hur gör man då servern har flera användare?
        hashmap som anger vilka enheter som tillhör respektive användare?
-    */ 
+     */
     private void sendLastValToUser() {
-        int temp, humidity, soilMoisture;
+        float temp, humidity, soilMoisture;
         NodeUnit tempUnit = nodeUnits.get(0);
         temp = tempUnit.getTemp();
         humidity = tempUnit.getHumidity();
@@ -121,7 +138,15 @@ public class FlowerServer{
 
     // Här ska databasvärden som returneras dirigeras i lämplig stream till användare
     private void sendHistoryToUser() {
+        for (NodeUnit unit : nodeUnits) {
+            // send to user
+
+            unit.getTemp();
+            unit.getHumidity();
+        }
+
         System.out.println("history of values is sent from DB to user");
+
     }
 
     public void setAddress(String host) {
@@ -139,9 +164,9 @@ public class FlowerServer{
 
         if (running) {
             System.out.println("Server is already running, stop server before starting");
-            textField.setText("\nServer is already running, stop server before starting");
+            textField.setText("Server is already running, stop server before starting");
         } else {
-            textField.setText("\nServer is starting");
+            textField.setText("Server is starting");
             running = true;
             runServer();
         }
@@ -151,19 +176,20 @@ public class FlowerServer{
     protected void stopServer() {
         textField.setText("\nServer is stopping");
         running = false;
-        
+
         System.out.println("Stopping server");
         try {
             serverSocket.close();
             Thread.currentThread().interrupt();
+            
         } catch (IOException ex) {
             Logger.getLogger(FlowerServer.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     // metod för att lägga till fler enehter
     // För tillfället skapas enheter manuellt, tanken är att ha en knapp i gui för att lägga till enheter
-    protected void addUnit(){
+    protected void addUnit() {
         NodeUnit nodeUnit = new NodeUnit(iD);
         nodeUnits.add(nodeUnit);
         iD++;
