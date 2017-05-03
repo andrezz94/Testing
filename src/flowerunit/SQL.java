@@ -3,6 +3,7 @@ package flowerunit;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -20,23 +21,21 @@ public class SQL {
     private Connection con = null;
 
     // lägger till ett värde i databasen
-    public void addValue(Date date, int temp, int humidity, int iD) {
+    public void addValue(float temp, float humidity, int iD) {
 
         try {
             String driver = "com.mysql.jdbc.Driver";
-            String url = "jdbc:mysql://localhost:3306/mysql";
-            String uName = "username";
-            String passWord = "password";
+            String url = "jdbc:mysql://localhost:3306/flowerunits";
+            String uName = "Test";
+            String passWord = "testUnit";
+            String insertString = "Insert INTO FlowerUnit (iD, temp, humidity, time_created) "
+                    + "VALUES ('" +iD + "', '" + temp + "', '" + humidity + "', now())";
 
             Class.forName(driver);
             con = DriverManager.getConnection(url, uName, passWord);
             stmt = con.createStatement();
-
-            //stmt.executeUpdate("Insert * INTO FlowerUnit (date, temp, humidity, iD) VALUE ('"+date+"', '"+temp+"', '"+humidity+"', '"+iD+"')");
-            
-            // inte testat än men misstänker att executeupdate är för insert och resultset är för select
-            
-            rs = stmt.executeQuery("Insert * INTO FlowerUnit (date, temp, humidity, iD) VALUE ('" + date + "', '" + temp + "', '" + humidity + "', '" + iD + "')");
+            PreparedStatement statement = con.prepareStatement(insertString);
+            statement.execute();
             con.close();
 
         } catch (ClassNotFoundException ex) {
@@ -50,7 +49,7 @@ public class SQL {
 
     // här är det tänkt att returnera alla värden som finns i databasen för en enhet i en lista av något slag
     protected void getHistory() {
-
+        //rs = stmt.executeQuery("Insert * INTO FlowerUnit (date, temp, humidity, iD) VALUE ('" + date + "', '" + temp + "', '" + humidity + "', '" + iD + "')");
     }
 
 }
