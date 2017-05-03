@@ -10,7 +10,6 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
-
 /**
  *
  * @author Oscar Odelstav, Andre Freberg, Chrstoffer Emilsson
