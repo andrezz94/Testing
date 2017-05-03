@@ -14,6 +14,6 @@
       <TextArea fx:id="textArea" layoutX="11.0" layoutY="89.0" prefHeight="340.0" prefWidth="399.0" wrapText="true" />
       <Button layoutX="18.0" layoutY="14.0" mnemonicParsing="false" onAction="#handleButtonStart" text="Start Server" />
       <Button layoutX="18.0" layoutY="47.0" mnemonicParsing="false" onAction="#handleButtonStop" text="Stop Server" />
-      <Button layoutX="301.0" layoutY="14.0" mnemonicParsing="false" text="Exit Program" />
+      <Button layoutX="301.0" layoutY="14.0" mnemonicParsing="false" onAction="#handleButtonExit" text="Exit Program" />
    </children>
 </AnchorPane>
