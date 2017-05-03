@@ -37,7 +37,6 @@ public class FlowerServer {
         nodeUnits = new ArrayList<>();
         sqlCon = new SQL();
         addUnit();
-        addUnit();
     }
 
     // Server tråd med socket anslutningar och I/O stream
@@ -50,23 +49,21 @@ public class FlowerServer {
 
                 System.out.println("Server starting...");
                 while (running) {
-                    
-                    
 
                     float temp, humidity;
                     int iD;
                     String request;
 
                     try {
-                        while(!running){
-                        Thread.sleep(1000);
-                    }
+                        while (!running) {
+                            Thread.sleep(1000);
+                        }
                         serverSocket = new ServerSocket(port);
                         while (running) {
                             textField.setText("Accepting incoming connections on " + host + ": " + port);
                             System.out.println("Accepting incoming connections on " + host + ": " + port);
                             socket = serverSocket.accept();
-                            
+
                             br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
                             request = br.readLine();
@@ -74,18 +71,20 @@ public class FlowerServer {
                             if (request != null) {
                                 switch (request) {
                                     case "addValue":
-                                        iD = br.read();
+                                        iD = Integer.valueOf(br.readLine());
                                         textField.setText("User " + iD + " connected");
                                         temp = Float.valueOf(br.readLine());
                                         System.out.println(temp);
                                         humidity = Float.valueOf(br.readLine());
 
-                                        //NodeUnit tempUnit = nodeUnits.get(iD);
-                                        //tempUnit.setHumidity(humidity);
-                                        //tempUnit.setTemp(temp);
+                                        NodeUnit tempUnit = nodeUnits.get(iD);
+                                        tempUnit.setHumidity(humidity);
+                                        tempUnit.setTemp(temp);
                                         addValueToDB(temp, humidity, iD);
+                                        
                                         socket.close();
                                         textField.setText("User " + iD + " disconnected");
+                                        sendLastValToUser();
                                         break;
                                     case "getValue":
                                         sendLastValToUser();
@@ -98,9 +97,7 @@ public class FlowerServer {
                                         break;
                                 }
                             }
-
                         }
-
                     } catch (IOException e) {
                         e.printStackTrace();
                     } catch (InterruptedException ex) {
@@ -130,9 +127,12 @@ public class FlowerServer {
      */
     private void sendLastValToUser() {
         float temp, humidity, soilMoisture;
-        NodeUnit tempUnit = nodeUnits.get(0);
-        temp = tempUnit.getTemp();
-        humidity = tempUnit.getHumidity();
+        
+        for (NodeUnit unit : nodeUnits) {
+            temp = unit.getTemp();
+            humidity = unit.getHumidity();
+            System.out.println("\nUnit: " + iD + "\nTemp: " + temp + "\nHumidity: " + humidity);
+        }
         System.out.println("most recent value is sent to user");
     }
 
@@ -144,9 +144,7 @@ public class FlowerServer {
             unit.getTemp();
             unit.getHumidity();
         }
-
         System.out.println("history of values is sent from DB to user");
-
     }
 
     public void setAddress(String host) {
@@ -181,7 +179,7 @@ public class FlowerServer {
         try {
             serverSocket.close();
             Thread.currentThread().interrupt();
-            
+
         } catch (IOException ex) {
             Logger.getLogger(FlowerServer.class.getName()).log(Level.SEVERE, null, ex);
         }
