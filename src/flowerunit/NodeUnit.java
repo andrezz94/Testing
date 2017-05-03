@@ -9,7 +9,7 @@ package flowerunit;
 public class NodeUnit {
     
     // variablerna är Integers för tillfället, bör senare ändras till flyttal
-    private int temp, humidity, soilMoisture;
+    private float temp, humidity, soilMoisture;
     private int Id;
     
     // huvudkonstruktor för anslutna enheter
@@ -17,32 +17,27 @@ public class NodeUnit {
         this.Id = Id;
     }
     
-    // Överskuggad konstruktor för tempvariabel till client uppdateringar
-    public NodeUnit(){
-        
-    }
-    
-    public int getTemp() {
+    public float getTemp() {
         return temp;
     }
     
-    public void setTemp(int temp) {
+    public void setTemp(float temp) {
         this.temp = temp;
     }
     
-    public int getHumidity() {
+    public float getHumidity() {
         return humidity;
     }
     
-    public void setHumidity(int humidity) {
+    public void setHumidity(float humidity) {
         this.humidity = humidity;
     }
     
-    public int getSoilMoisture() {
+    public float getSoilMoisture() {
         return soilMoisture;
     }
     
-    public void setSoilMoisture(int soilMoisture) {
+    public void setSoilMoisture(float soilMoisture) {
         this.soilMoisture = soilMoisture;
     }
 }
