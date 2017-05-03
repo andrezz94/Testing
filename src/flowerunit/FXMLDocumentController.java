@@ -18,6 +18,7 @@ import javafx.scene.control.TextField;
 public class FXMLDocumentController implements Initializable {
     
     private FlowerServer server;
+    private String hostAdr, portNbr;
     
     @FXML
     private TextField Host, Port;
@@ -27,12 +28,31 @@ public class FXMLDocumentController implements Initializable {
     
     @FXML
     private void handleButtonStart(ActionEvent event) {
+        
+        try{
+            
+        hostAdr = Host.getText();
+        portNbr = Port.getText();
+        
+        if(!hostAdr.isEmpty() || !portNbr.isEmpty()){
+            server.startServer(hostAdr, Integer.valueOf(portNbr));
+        }else{
             server.startServer("127.0.0.1", 8000);
+        }
+        
+        }catch(NullPointerException e){
+            e.printStackTrace();
+        }       
     }
     
     @FXML
     private void handleButtonStop(ActionEvent event) {
         server.stopServer();
+    }
+    
+    @FXML
+    private void handleButtonExit(ActionEvent event){
+        System.exit(0);
     }
     
     @Override
@@ -46,4 +66,6 @@ public class FXMLDocumentController implements Initializable {
             }
         } );
     }
+    
+    
 }
