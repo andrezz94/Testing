@@ -37,6 +37,7 @@ public class FlowerServer {
         nodeUnits = new ArrayList<>();
         sqlCon = new SQL();
         addUnit();
+        addUnit();
     }
 
     // Server tråd med socket anslutningar och I/O stream
@@ -84,7 +85,7 @@ public class FlowerServer {
                                         
                                         socket.close();
                                         textField.setText("User " + iD + " disconnected");
-                                        sendLastValToUser();
+                                        //sendLastValToUser();
                                         break;
                                     case "getValue":
                                         sendLastValToUser();
