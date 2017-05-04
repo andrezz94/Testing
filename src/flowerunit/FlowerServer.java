@@ -27,6 +27,7 @@ public class FlowerServer {
     private ArrayList<NodeUnit> nodeUnits;
     private static int iD = 0;
     float test;
+    int testing;
 
     public FlowerServer(String host, int port) {
         running = false;
