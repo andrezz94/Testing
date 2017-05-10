@@ -9,8 +9,8 @@ package flowerunit;
 public class NodeUnit {
     
     // variablerna är Integers för tillfället, bör senare ändras till flyttal
-    private float temp, humidity, soilMoisture;
-    private int Id;
+    private float temp, humidity;
+    private int Id, soilMoisture;
     
     // huvudkonstruktor för anslutna enheter
     public NodeUnit(int Id){
@@ -33,11 +33,11 @@ public class NodeUnit {
         this.humidity = humidity;
     }
     
-    public float getSoilMoisture() {
+    public int getSoilMoisture() {
         return soilMoisture;
     }
     
-    public void setSoilMoisture(float soilMoisture) {
+    public void setSoilMoisture(int soilMoisture) {
         this.soilMoisture = soilMoisture;
     }
 }
