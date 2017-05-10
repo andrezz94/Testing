@@ -1,10 +1,16 @@
 package flowerunit;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectOutputStream;
+import java.io.PrintStream;
+import java.io.Serializable;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -14,7 +20,7 @@ import javafx.scene.control.TextField;
  *
  * @author Oscar Odelstav, Andre Freberg, Chrstoffer Emilsson
  */
-public class FlowerServer {
+public class FlowerServer implements Serializable {
 
     private String host;
     private int port;
@@ -53,7 +59,7 @@ public class FlowerServer {
                 while (running) {
 
                     float temp, humidity;
-                    int iD;
+                    int iD, soilMoisture;
                     String request;
 
                     try {
@@ -62,7 +68,7 @@ public class FlowerServer {
                         }
                         serverSocket = new ServerSocket(port);
                         while (running) {
-                            textField.setText("Accepting incoming connections on " + host + ": " + port);
+                            //textField.setText("Accepting incoming connections on " + host + ": " + port);
                             System.out.println("Accepting incoming connections on " + host + ": " + port);
                             socket = serverSocket.accept();
 
@@ -74,22 +80,28 @@ public class FlowerServer {
                                 switch (request) {
                                     case "addValue":
                                         iD = Integer.valueOf(br.readLine());
-                                        textField.setText("User " + iD + " connected");
+                                        //textField.setText("User " + iD + " connected");
                                         temp = Float.valueOf(br.readLine());
-                                        System.out.println(temp);
+                                        System.out.println("Temp: " + temp);
                                         humidity = Float.valueOf(br.readLine());
+                                        System.out.println("Humidity" + humidity);
+                                        soilMoisture = Integer.valueOf(br.readLine());
+                                        System.out.println("SoilMoisture: " + soilMoisture);
 
                                         NodeUnit tempUnit = nodeUnits.get(iD);
                                         tempUnit.setHumidity(humidity);
                                         tempUnit.setTemp(temp);
-                                        addValueToDB(temp, humidity, iD);
+                                        tempUnit.setSoilMoisture(soilMoisture);
+                                        addValueToDB(temp, humidity, iD, soilMoisture);
+
                                         
-                                        socket.close();
-                                        textField.setText("User " + iD + " disconnected");
+                                        //textField.setText("User " + iD + " disconnected");
                                         //sendLastValToUser();
                                         break;
                                     case "getValue":
+                                        System.out.println("Client connected to server");
                                         sendLastValToUser();
+                                        
                                         break;
                                     case "getHistory":
                                         sendHistoryToUser();
@@ -98,6 +110,7 @@ public class FlowerServer {
                                         System.out.println("Invalid request");
                                         break;
                                 }
+                                socket.close();
                             }
                         }
                     } catch (IOException e) {
@@ -111,9 +124,9 @@ public class FlowerServer {
     }
 
     // Lägga till värden i databasen. db-anslutning ej färdigställd i SQL-klassen
-    private void addValueToDB(float temp, float humidity, int iD) {
+    private void addValueToDB(float temp, float humidity, int iD, int soilMoisture) {
         System.out.println("received value sent to DB");
-        sqlCon.addValue(temp, humidity, iD);
+        sqlCon.addValue(temp, humidity, iD, soilMoisture);
         textField.setText("Values received and stored i DB");
     }
 
@@ -127,25 +140,60 @@ public class FlowerServer {
        en bra metod för detta ska arbetas fram, hur gör man då servern har flera användare?
        hashmap som anger vilka enheter som tillhör respektive användare?
      */
-    private void sendLastValToUser() {
-        float temp, humidity, soilMoisture;
+    private void sendLastValToUser() throws IOException {
+        float temp, humidity;
+        int id = 0;
+        int soilMoisture;
+        BufferedOutputStream out = new BufferedOutputStream(socket.getOutputStream());
+        PrintStream pout = new PrintStream(out);
+        ObjectOutputStream oOut = new ObjectOutputStream(socket.getOutputStream());
         
+        pout.print(nodeUnits.size());
+
         for (NodeUnit unit : nodeUnits) {
+            
             temp = unit.getTemp();
             humidity = unit.getHumidity();
+            soilMoisture = unit.getSoilMoisture();
+            pout.print(id+"\r\n" + temp+"\r\n" + humidity+"\r\n");
             System.out.println("\nUnit: " + iD + "\nTemp: " + temp + "\nHumidity: " + humidity);
+            id++;
+            
         }
         System.out.println("most recent value is sent to user");
     }
 
     // Här ska databasvärden som returneras dirigeras i lämplig stream till användare
     private void sendHistoryToUser() {
-        for (NodeUnit unit : nodeUnits) {
-            // send to user
-
-            unit.getTemp();
-            unit.getHumidity();
+        
+        ResultSet set = null;
+        float temp, humidity;
+        int id;
+        String date;
+        BufferedOutputStream out;
+        
+        
+        try {
+            out  = new BufferedOutputStream(socket.getOutputStream());
+            PrintStream pout = new PrintStream(out);
+            set = sqlCon.getHistory();
+            
+            while(set.next()){
+                date = set.getString(String.valueOf("time_created"));
+                id = set.getInt("iD");
+                temp = set.getFloat("temp");
+                humidity = set.getFloat("humidity");
+                
+                pout.print(date + "\r\n" + id + "\r\n" + temp + "\r\n" + humidity + "\r\n");
+                
+            }
+            out.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(FlowerServer.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(FlowerServer.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
         System.out.println("history of values is sent from DB to user");
     }
 
