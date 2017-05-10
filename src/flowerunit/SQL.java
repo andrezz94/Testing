@@ -16,23 +16,26 @@ import java.util.logging.Logger;
 public class SQL {
 
     private Statement stmt = null;
-    private ResultSet rs = null;
     private Connection con = null;
 
     // lägger till ett värde i databasen
-    public void addValue(float temp, float humidity, int iD) {
-
+    public void addValue(float temp, float humidity, int iD, int soilMoisture) {
+        
+        if(soilMoisture < 0){
+            soilMoisture = 0;
+        }else if (soilMoisture > 100){
+            soilMoisture = 100;
+        }
         try {
             String driver = "com.mysql.jdbc.Driver";
             String url = "jdbc:mysql://localhost:3306/flowerunits";
             String uName = "Test";
             String passWord = "testUnit";
-            String insertString = "Insert INTO FlowerUnit (iD, temp, humidity, time_created) "
-                    + "VALUES ('" +iD + "', '" + temp + "', '" + humidity + "', now())";
+            String insertString = "Insert INTO FlowerUnit (iD, temp, humidity, soilMoisture, time_created) "
+                    + "VALUES ('" +iD + "', '" + temp + "', '" + humidity + "', '" + soilMoisture + "', now())";
 
             Class.forName(driver);
             con = DriverManager.getConnection(url, uName, passWord);
-            stmt = con.createStatement();
             PreparedStatement statement = con.prepareStatement(insertString);
             statement.execute();
             con.close();
@@ -47,8 +50,37 @@ public class SQL {
     }
 
     // här är det tänkt att returnera alla värden som finns i databasen för en enhet i en lista av något slag
-    protected void getHistory() {
+    protected ResultSet getHistory() throws SQLException {
         //rs = stmt.executeQuery("Insert * INTO FlowerUnit (date, temp, humidity, iD) VALUE ('" + date + "', '" + temp + "', '" + humidity + "', '" + iD + "')");
+        
+        String driver = "com.mysql.jdbc.Driver";
+            String url = "jdbc:mysql://localhost:3306/flowerunits";
+            String uName = "Test";
+            String passWord = "testUnit";
+            String insertString = "Select date, id, temp, humidity from " + 
+                    "flowerunits .flowerunit";
+            ResultSet rs = null;
+            PreparedStatement statement = null;
+
+        try {
+            Class.forName(driver);
+            con = DriverManager.getConnection(url, uName, passWord);
+            
+            statement = con.prepareStatement(insertString);
+            rs = statement.getResultSet();
+            con.close();
+            
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(SQL.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException ex) {
+            Logger.getLogger(SQL.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            if(statement !=null){
+                statement.close();
+            }
+        }
+        
+    return rs;
     }
 
 }
